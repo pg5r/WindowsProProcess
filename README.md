@@ -1,5 +1,4 @@
-```markdown
-# WindowsProPacket
+# WindowsProPacket 1.0
 
 WindowsProPacket is a Windows-based CLI tool for process monitoring, network inspection, and packet analysis using Python, psutil, and Scapy.
 
@@ -144,4 +143,3 @@ params autofreeze <on|off>
 
 Educational use only.
 Unauthorized usage may violate laws.
-```
