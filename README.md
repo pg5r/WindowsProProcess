@@ -1,6 +1,6 @@
-# WindowsProPacket 1.0
+# WindowsProProcess 1.0
 
-WindowsProPacket is a Windows-based CLI tool for process monitoring, network inspection, and packet analysis using Python, psutil, and Scapy.
+WindowsProProcess is a Windows-based CLI tool for process monitoring, network inspection, and packet analysis using Python, psutil, and Scapy.
 
 It provides real-time process tracking, network connection inspection, and packet sniffing through an interactive command-line interface.
 
