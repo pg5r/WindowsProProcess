@@ -7,6 +7,8 @@ from scapy.layers.http import HTTPRequest, HTTPResponse
 from pathlib import Path
 import subprocess
 import time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
 HTTP_METHODS = ("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH")
 
@@ -79,6 +81,9 @@ Inspect process network connections by process name.
 
 sniff connection <src>=<dst> <count>
 Capture and analyze network traffic for a specific connection.
+
+sniff files <count> <path>
+Capture Deleted or Created files in a path
 
 Example:
 sniff connection 192.168.1.10=8.8.8.8 5
@@ -238,7 +243,45 @@ def PacketHandler(pkt, dst, src):
 
                 print("-----------------------------------------------")
                 return True
-            
+
+def FileSniff(path, count):
+    try:
+        class Handler(FileSystemEventHandler):
+            def __init__(self):
+                self.ccn = 0
+
+            def on_created(self, event):
+                if self.ccn >= count:
+                    return
+                
+                print("Created:", event.src_path)
+                self.ccn += 1
+
+            def on_deleted(self, event):
+                if self.ccn >= count:
+                    return
+
+                print("Deleted:", event.src_path)
+                self.ccn += 1
+
+
+        handler = Handler()
+
+        observer = Observer()
+        observer.schedule(handler, path, recursive=True)
+        observer.start()
+    except:
+        print(Fore.RED + "Failed to sniff.. may the path is wrong")
+
+    try:
+        while handler.ccn < count:
+            time.sleep(0.1)
+    finally:
+        observer.stop()
+        observer.join()
+
+    return True
+
 def ProPacket():
     Clean()
 
@@ -251,16 +294,14 @@ def ProPacket():
             elif wrs[0] == "help" or wrs[0] == "-help" or wrs[0] == "--help":
                 print(helpie)
 
-        if len(wrs) == 2:
+        if len(wrs) >= 2:
             if wrs[0] == "params":
                 if wrs[1] == "autofreeze" or wrs[1] == "autofrz" or wrs[1] == "atfrz" or wrs[1] == "p1":
                     if Parameters["autofreeze"] == True:
                         print("Allowed.")
                     else:
                         print("Disallowed.")
-
-        if len(wrs) > 2:
-            if wrs[0] == "process":
+            elif wrs[0] == "process":
                 if wrs[1] == "show":
                     if wrs[2] == "all":
                         for process in psutil.process_iter(["pid" , "name"]):
@@ -426,6 +467,24 @@ def ProPacket():
                             print("AutoFreeze turned off successfuly !")
                             Parameters["autofreeze"] = False
             elif wrs[0] == "sniff":
+                if wrs[1] == "files":
+                    scnt = wrs[2]
+                    try:
+                        int(scnt)
+                    except:
+                        print(Fore.RED + "Invalid Count.")
+                        continue
+
+                    count = int(scnt)
+
+                    if count < 1:
+                        print(Fore.RED + "Count must be bigger than zero.")
+                        continue
+
+                    if len(wrs) > 3:
+                        path = str(wrs[3])
+                        a = FileSniff(path, count)
+
                 if wrs[1] == "connection":
                     connections = str(wrs[2])
                     if not "=" in connections:
