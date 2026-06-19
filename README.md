@@ -1,4 +1,4 @@
-# WindowsProProcess 1.0
+# WindowsProProcess 1.1
 
 WindowsProProcess is a Windows-based CLI tool for process monitoring, network inspection, and packet analysis using Python, psutil, and Scapy.
 
@@ -129,6 +129,11 @@ params autofreeze <on|off>
 ```
 
 ---
+
+### Capture Created and Deleted files
+```bash
+sniff files <count> <path>
+```
 
 ## Notes
 
