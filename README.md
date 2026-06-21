@@ -128,6 +128,10 @@ params autofreeze
 params autofreeze <on|off>
 ```
 
+```bash
+params delayautofreeze <on|off> <delay>
+```
+
 ---
 
 ### Capture Created and Deleted files
