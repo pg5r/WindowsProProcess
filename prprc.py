@@ -71,6 +71,14 @@ Monitor process creation events.
 process detect <count> deleted
 Monitor process termination events.
 
+or
+
+process detect <count> create your target names
+Monitor process creation events if it has one of these names.
+
+process detect <count> deleted your target names
+Monitor process termination events if it has one of these names.
+
 process freeze <pid>
 Suspend a process.
 
@@ -111,7 +119,7 @@ def Clean():
     print(Fore.GREEN + f"\n{header}")
     print(Fore.YELLOW + f" python-windows based - " + Fore.LIGHTBLACK_EX + "version 1.0")
 
-def DetectNewPids(count: int):
+def DetectNewPids(count: int , forbidden_wrs= []):
     old_pids = []
 
     for pid in psutil.pids():
@@ -139,6 +147,12 @@ def DetectNewPids(count: int):
         for element in new_pids:
             if not element in old_pids:
                 try:
+                    
+                    if forbidden_wrs:
+                        found = any(word.lower() in element[0].lower() for word in forbidden_wrs)
+                        if not found:
+                            continue
+
                     print(f"[NEW PROCESS] {element[0]} | PID: {element[1]}")
 
                     if Parameters["autofreeze"] == True:
@@ -159,7 +173,8 @@ def DetectNewPids(count: int):
         
         old_pids = new_pids
 
-def DetectOldPids(count: int):
+
+def DetectOldPids(count: int , forbidden_wrs = []):
     old_pids = []
 
     for pid in psutil.pids():
@@ -313,6 +328,30 @@ def ProPacket():
                         print("Allowed.")
                     else:
                         print("Disallowed.")
+                elif wrs[1] == "delayautofreeze" or wrs[1] == "daf":
+                    if len(wrs) == 4:
+                        enabling = str(wrs[2])
+                        print("ayo")
+                        if enabling == "true" or enabling == "yes" or enabling == "enable" or enabling == "allow":
+                            Parameters["delayautofreeze"][0] = True
+                        elif enabling == "false" or enabling == "no" or enabling == "disable" or enabling == "disallow":
+                            Parameters["delayautofreeze"][0] = False
+                        else:
+                            print("Invalid Enabling Value")
+                            continue
+
+                        if len(wrs) > 3:
+                            sdelay = str(wrs[3])
+
+                            try:
+                                float(sdelay)
+                            except:
+                                print("Invalid Delay: Must be float")
+
+                            delay = float(sdelay)
+
+                            Parameters["delayautofreeze"][1] = delay
+                            print("Parameter Updated Successfuly !")
             elif wrs[0] == "process":
                 if wrs[1] == "show":
                     if wrs[2] == "all":
@@ -388,6 +427,17 @@ def ProPacket():
                             a = DetectNewPids(count=count)
                         elif type == "deleted" or type == "-deleted" or type == "--deleted" or type == "old" or type == "-old" or type == "--old":
                             a = DetectOldPids(count=count)
+
+                    if len(wrs) > 4:
+                        type = str(wrs[3])
+                        forbidden_wrs = wrs[4:]
+
+                        if type == "create" or type == "-create" or type == "--create" or type == "new" or type == "-new" or type == "--new":
+                            a = DetectNewPids(count=count , forbidden_wrs=forbidden_wrs)
+                        elif type == "deleted" or type == "-deleted" or type == "--deleted" or type == "old" or type == "-old" or type == "--old":
+                            a = DetectOldPids(count=count , forbidden_wrs=forbidden_wrs)
+
+                        
                 elif wrs[1] == "freeze":
                     spd = str(wrs[2])
 
@@ -478,29 +528,6 @@ def ProPacket():
                         else:
                             print("AutoFreeze turned off successfuly !")
                             Parameters["autofreeze"] = False
-                if wrs[1] == "delayautofreeze" or wrs[1] == "daf":
-                    enabling = str(wrs[2])
-                    if enabling == "true" or enabling == "yes" or enabling == "enable" or enabling == "allow":
-                        Parameters["delayautofreeze"][0] = True
-                    elif enabling == "false" or enabling == "no" or enabling == "disable" or enabling == "disallow":
-                        Parameters["delayautofreeze"][0] = False
-                    else:
-                        print("Invalid Enabling Value")
-                        continue
-
-                    if len(wrs) > 3:
-                        sdelay = str(wrs[3])
-
-                        try:
-                            float(sdelay)
-                        except:
-                            print("Invalid Delay: Must be float")
-
-                        delay = float(sdelay)
-
-                        Parameters["delayautofreeze"][1] = delay
-                        print("Parameter Updated Successfuly !")
-                        
 
             elif wrs[0] == "sniff":
                 if wrs[1] == "files":
