@@ -44,7 +44,8 @@ header = r"""
 init(autoreset=True)
 
 Parameters = {
-    "autofreeze": False
+    "autofreeze": False,
+    "delayautofreeze": [False, 0]
 }
 
 
@@ -94,6 +95,9 @@ Show autofreeze status
 params autofreeze <on|off>
 Enable or disable automatic process freezing
 
+params delayautofreeze <on|off> <delay:float>
+Enable or disable automatic process freezing after a delay
+
 Notes
 Process operations require valid PID or process name
 Network scanning relies on psutil network interfaces
@@ -135,12 +139,20 @@ def DetectNewPids(count: int):
         for element in new_pids:
             if not element in old_pids:
                 try:
+                    print(f"[NEW PROCESS] {element[0]} | PID: {element[1]}")
+
                     if Parameters["autofreeze"] == True:
                         prc = psutil.Process(element[1])
                         prc.suspend()
-                        print("Automaticly Freezed...")
+                        print("Automaticly Freezed !")
 
-                    print(f"[NEW PROCESS] {element[0]} | PID: {element[1]}")
+                    if Parameters["delayautofreeze"][0] == True:
+                        print("Waiting to Freeze..")
+                        time.sleep(Parameters["delayautofreeze"][1])
+                        prc = psutil.Process(element[1])
+                        prc.suspend()
+                        print("Automaticly Freezed !")
+
                     ccnt += 1
                 except:
                     pass
@@ -466,6 +478,30 @@ def ProPacket():
                         else:
                             print("AutoFreeze turned off successfuly !")
                             Parameters["autofreeze"] = False
+                if wrs[1] == "delayautofreeze" or wrs[1] == "daf":
+                    enabling = str(wrs[2])
+                    if enabling == "true" or enabling == "yes" or enabling == "enable" or enabling == "allow":
+                        Parameters["delayautofreeze"][0] = True
+                    elif enabling == "false" or enabling == "no" or enabling == "disable" or enabling == "disallow":
+                        Parameters["delayautofreeze"][0] = False
+                    else:
+                        print("Invalid Enabling Value")
+                        continue
+
+                    if len(wrs) > 3:
+                        sdelay = str(wrs[3])
+
+                        try:
+                            float(sdelay)
+                        except:
+                            print("Invalid Delay: Must be float")
+
+                        delay = float(sdelay)
+
+                        Parameters["delayautofreeze"][1] = delay
+                        print("Parameter Updated Successfuly !")
+                        
+
             elif wrs[0] == "sniff":
                 if wrs[1] == "files":
                     scnt = wrs[2]
