@@ -1,4 +1,4 @@
-# WindowsProProcess 1.11
+# WindowsProProcess 1.112
 
 WindowsProProcess is a Windows-based CLI tool for process monitoring, network inspection, and packet analysis
 
@@ -74,10 +74,12 @@ process show connections <pid>
 
 ```bash
 process detect <count> create
+process detect <count> create <your> <key> <words>...
 ```
 
 ```bash
 process detect <count> deleted
+process detect <count> deleted <your> <key> <words>...
 ```
 
 ---
